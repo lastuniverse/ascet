@@ -15,23 +15,22 @@ if( conf.serverType === "http" ){
     server = http.createServer(app);
 }else if( conf.serverType === "https" ){
     // Create HTTPS server.
-console.log(conf.options.key)
 
-//    var file = path.join(__dirname, conf.options.key);
-//    console.log('file: ',file);
-//    conf.options.key = fs.readFileSync(file);
+    var file = path.join(__dirname, conf.options.key);
+    console.log('file: ',file);
+    conf.options.key = fs.readFileSync(file);
 
-//    file = path.join(__dirname, conf.options.cert);
-//    console.log('file: ',file);
-//    conf.options.cert = fs.readFileSync(conf.options.cert);
+    file = path.join(__dirname, conf.options.cert);
+    console.log('file: ',file);
+    conf.options.cert = fs.readFileSync(conf.options.cert);
 
 //    file = path.join(__dirname, conf.options.ca);
 //    console.log('file: ',file);
 //    conf.options.ca = fs.readFileSync(conf.options.ca);
 
-//    delete conf.options.ca;
-//    var https = require('https');
-//    server = https.createServer(conf.options, app);
+    delete conf.options.ca;
+    var https = require('https');
+    server = https.createServer(conf.options, app);
 }
 
 

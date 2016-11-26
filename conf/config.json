@@ -1,5 +1,5 @@
 {
-    "serverType": "http",
+    "serverType": "https",
     "port": 3000,
     "webSocket": true,
     "options": {
