@@ -1,0 +1,53 @@
+<script type="text/javascript" charset="utf-8">
+	webix.ready(function(){
+		webix.ui.fullScreen();
+		webix.ui({
+			rows:[
+				{
+					view: "toolbar",
+					id:"toolbar", 
+					css: "my_toolbar",
+					elements:[
+						{
+							view: "icon", 
+							icon: "user",
+						},
+						{
+							view: "label",
+							label: "Авторизуйтесь пожалуйста"
+						}
+
+					]
+				},
+				{ template: ""},
+				{ cols: [
+					{ template: ""},
+					{
+						view:"form", 
+						id:"auth_form",
+						width:300,
+						elements:[
+							{ view:"text", name: "login", label:"Логин", value: "<%-params.login%>"  },
+							{ view:"text", name: "password", type:"password", label:"Пароль" },
+							//{ view:"checkbox", name: "remember", value: <%-params.remember%>, label:"Запомнить меня", labelWidth: 245},
+							{ margin:5, cols:[
+								{ view:"button", value:"Login" , type: "form", id: "submit", click:"form_submit();", hotkey: "enter"  },
+								{ view:"button", value:"Cancel" }
+							]}
+						]
+					},
+					{ template: ""}
+				]},
+				{ template: ""}
+			]
+		});
+	});
+	
+	function form_submit(){
+		webix.send( "/auth/login", $$("auth_form").getValues());
+	}
+
+</script>
+
+
+	

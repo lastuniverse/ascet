@@ -1,0 +1,270 @@
+var current_schedule_id = null;
+
+var scheduler = null;
+var onevents = {};
+
+//webix.alert(webix.codebase);
+//webix.codebase = "./";
+
+var scheduler_list = {
+    rows:[
+        {   
+            tabs:["day","week", "month"],
+            view:"dhx-scheduler",
+            id: "scheduler_id",
+            save: "connector->/schedule/standart",
+            date:new Date(),
+            //date:new Date(2009,6,1),
+            mode:"week",
+            init:function(){
+                scheduler = this.getScheduler();
+                scheduler.config.xml_date="%Y-%m-%d %H:%i";
+                //scheduler.config.first_hour = 6;
+                //scheduler.config.multi_day = false;
+
+                
+                // scheduler.config.multi_day - (boolean) enables rendering of multi-day events (true by default)
+                scheduler.config.multi_day = true;
+
+                //scheduler.config.recurring - (boolean) enables the recurring view (false by default)
+                //scheduler.config.recurring = true;
+
+                scheduler.config.edit_on_create = true;
+                //scheduler.config.display_marked_timespans = true;
+                
+                //scheduler.config.mark_now = true;
+
+                //scheduler.config.multisection = true;
+                //scheduler.config.multisection_shift_all = true;
+
+
+                // запретить редактирование расписания
+                //scheduler.config.readonly = true;
+
+                // при создании нового события выводить форму
+                //scheduler.config.details_on_create = true;
+
+
+                onevents.onEventChanged = scheduler.attachEvent("onEventChanged", function (id , ev){
+                    webix.ajax().put("/schedule/data/task", ev, function(text, data, XmlHttpRequest){
+                    });
+                });
+
+                onevents.onEventAdded = scheduler.attachEvent("onEventAdded", function(id,ev){
+                    //return false;
+                    if( current_schedule_id ){
+                        ev.sid = current_schedule_id;
+                        //webix.alert("sid: "+current_schedule_id);
+                        webix.ajax().post("/schedule/data/task", ev, function(text, data, XmlHttpRequest){
+                            var json = JSON.parse(text);
+                            //webix.alert("data: "+JSON.stringify(json));
+                            //webix.alert("text: "+text);
+                            if(json && json.newid){
+                                if( typeof json.newid == "string" && json.newid.length > 0 ){
+                                    scheduler.changeEventId(ev.id,json.newid);
+                                }else{
+                                }
+                            }
+                        });
+                    }
+                });
+
+                onevents.onEventDeleted = scheduler.attachEvent("onEventDeleted", function(id){
+                    webix.ajax().del("/schedule/data/standart", id, function(text, data, XmlHttpRequest){
+
+                    });
+                });
+
+
+                scheduler.locale={
+                    date:{
+                        month_full:["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль",
+                        "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
+                        month_short:["Янв", "Фев", "Дек", "Апр", "Май", "Июн", "Июл", "Авг", "Сен",
+                        "Окт", "Ноя", "Дек"],
+                        day_full:["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница",
+                        "Суббота"],
+                        day_short:["Вс.", "Пн.", "Вт.", "Ср.", "Чт.", "Пт.", "Сб."]
+                    },
+                    labels:{
+                        dhx_cal_today_button:"Сегодня",
+                        day_tab:"День",
+                        week_tab:"Неделя",
+                        month_tab:"Месяц",
+                        new_event:"Новое мероприятие",
+                        icon_save:"Записать",
+                        icon_cancel:"Отменить",
+                        icon_details:"Детали",
+                        icon_edit:"Править",
+                        icon_delete:"Удалить",
+                        confirm_closing:"", //Your changes will be lost, are you sure?
+                        confirm_deleting:"Задача будет удалена безвозвратно, хотите продолжить?",
+                        section_description:"Описание",
+                        section_time:"Период"
+                    }
+                };
+
+
+
+                scheduler.locale.labels.section_performers="Исполнитель";
+                scheduler.locale.labels.section_disabled="Отключено";
+            
+            },
+            ready:function(){
+
+                scheduler = this.getScheduler();
+                load_schedule(current_schedule_id);
+                //scheduler.load("/schedule/data/standart","json");
+                //if( current_schedule_id )
+                //    scheduler.load("/schedule/data/task/"+current_schedule_id,"json");
+            }
+
+        }
+    ]
+};
+
+function schedule_play(){ }
+function schedule_pause(){ }
+function schedule_stop(){ }
+
+
+var scheduler_select_view = {
+    view: "combo",
+    label: "Выберите расписание",
+    labelWidth: 170,
+    width: 350,
+    options:"/schedule/data/combo",
+    on: {
+        onChange: function(newv, oldv){
+            load_schedule(newv);
+        }
+    }      
+};
+if( current_schedule_id )  scheduler_select_view.value = current_schedule_id;
+
+
+function load_schedule(id){
+    if( scheduler && id ){
+        current_schedule_id = id;
+        webix.ajax().get("/schedule/data/list/"+id, function(text, data, XmlHttpRequest){
+            var current = data.json();
+            scheduler.clearAll();
+            scheduler.parse(current.schedule,"json");
+            
+            var first = current.schedule.reduce(function(sum, ev) {
+                if(sum.start_date > ev.start_date )
+                    return ev;
+                return sum;
+            }, JSON.parse(JSON.stringify(current.schedule[0])) );
+          
+            //scheduler.config.preserve_scroll = false;
+            var date = new Date(first.start_date); //;
+            scheduler.setCurrentView(date, "week");
+
+            if( current.start_date ){
+                $$("schedule_status").define("label",'расписание запущено с '+current.start_date);
+            }else{
+                $$("schedule_status").define("label",'для запуска расписания нажмите [Запустить]');
+            }
+            $$('schedule_status').refresh();
+
+            //scheduler.load("/schedule/data/task/"+id,"json");
+
+        });                
+    }
+    //current_schedule_id = $$("schedulelist").getSelectedId().id;
+    
+    //$$("tasklist").load("/schedule/data/task/"+current_schedule_id);    
+}
+
+function open_schedule_manager(){
+    scheduler.clearAll();
+    scheduler.detachEvent(onevents.onEventChanged);
+        delete onevents.onEventChanged;
+    scheduler.detachEvent(onevents.onEventAdded);
+        delete onevents.onEventAdded;
+    scheduler.detachEvent(onevents.onEventDeleted);
+        delete onevents.onEventDeleted;
+
+    load_content('/schedule/views/manager');
+}
+
+var scheduler_list_view = {
+    rows:[
+        scheduler_list,
+        { 
+            view:"toolbar", 
+            css: "my_toolbar",
+            elements:[
+                {   view:"button",
+                    icon:"list",
+                    type:"icon",
+                    label:"Расписания",
+                    width:110,
+                    click:open_schedule_manager
+                },
+                { 
+                    view:"button", 
+                    icon:"ellipsis-v",
+                    type:"icon",
+                    width:25
+                },
+                scheduler_select_view,
+                { 
+                    view:"button", 
+                    icon:"ellipsis-v",
+                    type:"icon",
+                    width:25
+                },
+                { 
+                    view:"button", 
+                    id: "schedule_status",
+                    label: "status"
+                },
+                { 
+                    view:"button", 
+                    icon: "ellipsis-v",
+                    type: "icon",
+                    width: 25
+                },
+                {   view:"button", 
+                    icon: "play",
+                    type: "icon",
+                    label:"Запустить",
+                    width: 90,
+                    click:schedule_play
+                },
+                // {   view:"button",
+                //     icon: "pause",
+                //     type: "icon",
+                //     label:"Пауза",
+                //     width: 80,
+                //     click:schedule_pause
+                // },
+                {   view:"button",
+                    icon: "stop",
+                    type: "icon",
+                    label:"Остановить",
+                    width: 100,
+                    click:schedule_stop
+                }
+
+            ]
+        }
+    ]
+};
+
+
+
+webix.ui({
+    id: "content",
+    type:"space", 
+    cols: [
+        { 
+            header: "<center>Планировщик</center>", 
+            collapsed:false,
+            gravity: 0.6,
+            body: scheduler_list_view
+        }
+    ]
+},$$("content"));

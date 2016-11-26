@@ -1,0 +1,187 @@
+.my_menu .webix_view{
+	background-color: #ECEFF1;
+}
+.my_menu .webix_list_item{
+	line-height: 35px;
+	border-bottom-color: #ddd;
+}
+.webix_layout_toolbar,.webix_toolbar.webix_layout_subbar{
+	background:#868490
+}
+.webix_layout_toolbar.webix_toolbar{
+	background:#767480
+}
+
+
+ 
+.my_item .bold{
+	font-weight: bold;
+	position: relative;
+}
+
+.my_item .italic{
+	font-style: italic;
+	position: relative;
+}
+.my_item .my_left{
+	position: relative;
+}
+ 
+
+
+.table    { display: table }
+.tr       { display: table-row }
+.thead    { display: table-header-group }
+.tbody    { display: table-row-group }
+.tfoot    { display: table-footer-group }
+.col      { display: table-column }
+.colgroup { display: table-column-group }
+.td, .th  { display: table-cell }
+.caption  { display: table-caption }
+
+/* изменяем цвет текста в выделеном элементе списка */
+.webix_list_item.webix_selected {
+  color: #000000;
+}
+
+/* делаем черту более светлой */
+hr {
+	border: none; /* Убираем границу для браузера Firefox */
+	color: #bbbbbb; /* Цвет линии для остальных браузеров */
+	background-color: #bbbbbb; /* Цвет линии для браузера Firefox и Opera */
+	height: 1px; /* Толщина линии */
+}
+
+/* стили для элементов списка задач */
+.main{
+	display: table;
+	width: 100%;
+	margin: 6px 0px 6px 0px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+}
+
+.main::selection{
+	display: table;
+	width: 100%;
+	margin: 6px 0px 6px 0px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+}
+
+
+
+.row{
+	width: 100%;
+}
+
+.box{
+
+	display: table-cell;
+	padding: 6px;
+	width: 100%;
+}
+
+.lsidebar{
+	-webkit-border-radius: 4px 0px 0px 4px;
+	-moz-border-radius: 4px 0px 0px 4px;
+	border-radius: 4px 0px 0px 4px;\
+}
+.rsidebar{
+	-webkit-border-radius: 0px 4px 4px 0px;
+	-moz-border-radius: 0px 4px 4px 0px;
+	border-radius: 0px 4px 4px 0px;
+}
+
+.sideinfo{
+	background-color: #cdd7d7;
+	width: 150px;
+	min-width: 150px;
+	max-width: 150px;
+}
+
+.sidetext{
+	background-color: #dde8e8;
+}
+
+
+
+.rowmsg{
+	margin: 5px 0px 0px 0px;
+}
+
+
+.msginfo{
+	background-color: #b7c0c0;
+	width: 150px;
+	min-width: 150px;
+	max-width: 150px;
+}
+
+.msgtext{
+	background-color: #c7d0d0;
+}
+
+
+
+
+
+
+
+.mygrey{
+	background-color: #cdd7d7;
+}
+.myred{
+	background-color: #e7c6c6;
+}
+.myblue{
+	background-color: #c6c7d7;
+}
+.mygreen{
+	background-color: #c8d7c6;
+}
+.mylink{
+	color: #2f3466;
+	text-decoration: none;
+}
+
+.mytext, .mytext::selection{
+	color: #000000;
+}
+
+/* 
+	-webkit-border-radius: 6px;
+	-moz-border-radius: 6px;
+	border-radius: 6px;
+
+	border-top-left-radius: -1px;
+	border-top-right-radius: -1px;
+
+ */
+
+/* 
+.webix_list_item span{
+	font-family: Tahoma, Arial;
+	font-weight: bold;
+	float: left;
+	text-align: left;
+	padding-right: 20px;
+}
+.webix_list_item span.chat{
+	font-family: Verdana;
+	font-weight: bold;
+	float: left;
+	text-align: left;
+	padding-right: 20px;
+}
+ */
+
+
+.dhx_cal_event_clear{
+	background-color: #ccc;
+	border: 1px solid #aaa;
+	color: #fff;
+	overflow: hidden;
+}

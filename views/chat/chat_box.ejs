@@ -1,0 +1,102 @@
+/*************************************************************************************/
+
+function send_message_to_chat(){
+    var tabview = $$("chat_box_tab_view");
+    var tabs = tabview.getTabbar();
+    var chat_id = tabs.getValue();
+    var chat_view = $$(chat_id);
+    var reciver = chat_id.replace(/chat_/,"");
+    console.log("tabs.user_id: ", reciver);
+    var msg = $$("chat_message").getValue();
+    if( msg ){
+        var data = {
+            reciver: reciver,
+            message: msg
+        };
+
+        var json = {
+            collection: "chat",
+            method: "insert",
+            data: data
+        };
+        my.libs.ws.send(JSON.stringify(json), {mask: true});
+        
+        $$("chat_message").setValue("");
+        $$("chat_message").$setValue("");
+        $$("chat_message").refresh();
+        webix.UIManager.setFocus($$("send_button"));
+        webix.UIManager.setFocus($$("chat_message"));
+    }
+
+}
+
+function sortByDate(a,b){
+        a = a.date;
+        b = b.date;
+        return a>b?1:(a<b?-1:0);
+}
+
+
+function refrash_user_profile(){}
+
+/*************************************************************************************/
+
+var chat_box_msg = [
+    { view:"button", id:"chat_send_button",icon: "send", type: "icon", label:"Отправить", width: 90, click: send_message_to_chat, hotkey: "enter" },
+    { view:"text", id:"chat_message", name:"msg" }
+];
+
+
+function chat_template(obj){
+    var id = obj.sender;
+    return "<b>"+users[id].function+"</b> ("+users[id].profile.sname+" "+users[id].profile.name+") "+obj.date+"<br/><i>" + obj.message + "</i>";
+   //return "<b>["+obj.reciver+"] ["+obj.sender+"] "+obj.date+"<br/><i>" + obj.message + "</i>";
+}
+
+
+//{"emit":"chat/message","reciver":"admin","message":"обычно такого типа на php пишут","date":"2016-05-02 01:50:06","sender":"1461106295360001","_id":"1rQCGBOcrx7EAzsx"}
+var chat_box_msg_list = {
+    id: "chat_shared",
+    complexData: true,
+    view: "list",
+    url:my.proxy.chat,
+    save:my.proxy.chat,
+    template:chat_template,
+    sort:sortByDate,
+    type:{ height:"auto" }
+};
+
+var chat_box_tab_view = {
+    view: "tabview",
+    id: "chat_box_tab_view",
+    tabMinWidth:200, 
+    tabMoreWidth:40,
+    //moreTemplate:"Show more", 
+    popupWidth:300,
+    popupTemplate:"#text#",
+    yCount:10,    
+    cells: [
+        {
+            header:"Общий чат",
+            minWidth: 100,
+            id: "tab_shared",
+            body: chat_box_msg_list
+        }
+    ]
+};
+
+var chat_box_view = {
+    rows:[
+        chat_box_tab_view,
+        { 
+            view:"toolbar", 
+            css: "my_toolbar",
+            elements: chat_box_msg
+        }
+    ]
+};
+
+
+
+
+

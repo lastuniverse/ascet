@@ -1,0 +1,83 @@
+my.components.scheduler = {};
+var self = my.components.scheduler;
+
+/*************************************************************************************/
+
+<%- include('schedule_list') %>
+
+<%- include('task_list') %>
+
+<%- include('task_scheduler') %>
+
+<%- include('task_options') %>
+
+/*************************************************************************************/
+function reload_all_tasks(id){
+    // if(self.changed == "task_scheduler" ){
+    //     load_task(id);
+    // }else if(self.changed == "task_list" ){
+    //     load_schedule(id);
+    // }else if(self.changed){
+        load_task(id);
+        load_schedule(id);
+    //}
+    //$$("scheduler_id").resize();
+    //$$("scheduler_id").refresh();
+    self.changed = false;
+}
+
+
+/*************************************************************************************/
+var schedule_tab_view = {
+    view: "tabview",
+    id: "schedule_tab_view",
+    gravity: 1,
+    cells: [
+        {
+            header: "<center>Текущее расписание</center>",
+            body: task_list_view
+        },
+        {
+            header: "<center>Планировщик</center>",
+            body: task_scheduler_view
+        }
+    ]
+};
+
+
+/*************************************************************************************/
+
+webix.ui({
+    id: "schedules_container",
+    type:"space", 
+    cols: [
+        { 
+            header:"<center>Менеджер расписаний</center>", 
+            collapsed:false,
+            gravity: 0.4,
+            body: schedule_list_view
+        },
+        {view: "resizer"},
+        schedule_tab_view,
+        { 
+            header:"<center>Параметры мероприятия</center>",
+            collapsed:false,
+            gravity: 0.4,
+            body: task_options_view
+        },
+        {view: "template", gravity: 0}
+    ]
+},$$("schedules_container"));
+
+
+
+var tab_view = $$("schedule_tab_view").getMultiview();
+tab_view.attachEvent("onViewChange", function(){
+    //console.log("onViewChange");
+    reload_all_tasks(self.current_schedule_id);
+    return true;
+});
+
+$$('task_options_form').bind($$('task_list'));
+//$$('task_options_form').bind($$(self.scheduler));
+

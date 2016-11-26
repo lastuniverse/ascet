@@ -1,0 +1,80 @@
+/*************************************************************************************/
+var users = my.data.users.hash;
+var user = my.data.user.data[0];
+
+/*************************************************************************************/
+
+<%- include('task_list') %>
+
+<%- include('new_task') %>
+
+<%- include('edit_task') %>
+
+
+/*************************************************************************************/
+var task_detalied_toolbar = [
+    { view:"button", icon: "check-square", type: "icon", label: "Сохранить" },
+    { view:"button", icon: "remove", type: "icon", label: "Удалить" }
+];
+
+var task_detalied = {
+    view:"accordion",
+    type:"wide",
+    gravity: 0.4,
+    rows:[
+        //{ header:"Добавить задачу", collapsed: true, body:{} },
+        //{ header:"Добавить задачи из расписания", collapsed: true, body:{} },
+        //{ header:"Добавить задачи из шаблона", collapsed: true, body:{} },
+        { header:"Добавить новую задачу", collapsed: true, body:get_form("new") },
+        { header:"Редактировать текущую задачу", collapsed: false, body:ownner_edit_task_view },
+        { view:"template", gravity: 0.001 },
+        { 
+            view:"toolbar", 
+            gravity: 0,
+            css: "my_toolbar",
+            elements: task_detalied_toolbar
+        }
+    ]
+};
+
+/*************************************************************************************/
+webix.ui({
+    id: "tasks_container",
+    type:"space", 
+    cols: [
+        { 
+            header:"<center>Текущие задачи</center>",
+            collapsed:false,
+            gravity: 1,
+            body: cur_task_list_view
+        },
+        {view: "resizer"},
+        task_detalied,
+        {view: "template", gravity: 0}
+    ]
+},$$("tasks_container"));
+
+
+
+//$$('edit_task_form').bind($$('cur_task_list'));
+
+var task_data = {
+    "disabled":"0",
+    "id":"",
+    start_date: webix.Date.dateToStr("%Y-%m-%d %H:%i")(new Date()),
+    end_date: webix.Date.dateToStr("%Y-%m-%d %H:%i")(new Date()),
+    "text":"",
+    "user":"",
+    "users":"",
+    "records":[],
+    "order":{
+        "materials":0,
+        "services":0
+    },
+    "userlist":{}
+};
+
+$$("new_task_form").parse(task_data);
+
+/*************************************************************************************/
+

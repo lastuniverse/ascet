@@ -1,0 +1,61 @@
+var edit_task_form = get_form("edit");
+
+var message_task_view = {
+        id:"message_task_form",
+        view:"form",
+        //gravity: 0.01,
+        minWidth: 150,
+        complexData: true,
+        //scroll: "y",
+        //options: task_data,
+        //isolate:true,
+        elements:[
+            { view:"datepicker", name:"result_date", label:"Рабочая дата завершения", labelPosition:"top", stringResult:"true", timepicker:true,format:webix.Date.dateToStr("%Y-%m-%d %H:%i")},
+            { view:"textarea", name:"comment", minHeight:120, label:"Ваш комментарий", labelPosition:"top", gravity: 1},
+            { view:"multicombo", name:"users", label:"Исполнители", labelPosition:"top",
+                options:{ 
+                    body:{ 
+                        url: my.proxy.users, template:"#function#" 
+                    } 
+                }
+            },
+            //task_uploader,
+            //task_filelist,
+            //task_money_view,
+            { view:"button", value:"Внести изменения", align:"center", type: "form", click:"save_form" },
+            { view:"template", gravity: 0 }
+        ],
+        rules:{
+            result_date: webix.rules.isNotEmpty,
+            //comment: webix.rules.isNotEmpty,
+            //user: webix.rules.isNotEmpty
+        }        
+        //url:"rest->/schedule/data/task",
+        //save:"rest->/schedule/data/task",
+        //complexData: true
+};
+
+
+
+var ownner_edit_task_view = {
+    view:"scrollview",
+    scroll: "y",
+    body:{
+        rows:[ 
+            //edit_task_form,
+            message_task_view,
+            {gravity:0.001}
+        ]
+    }
+};
+
+
+var edit_task_view = {
+    view: "multiview",
+    type:{ height:"auto" },
+    cells: [
+        ownner_edit_task_view,
+        {id: "executor_edit_task_view", view: "template", template: "2222" },
+        {id: "perfomer_edit_task_view", view: "template", template: "3333" }
+    ]    
+};

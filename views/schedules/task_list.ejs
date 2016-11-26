@@ -1,0 +1,109 @@
+/*************************************************************************************/
+function add_task_to_schedule(){
+    if( !self.current_schedule_id ) return undefined;
+    var task = {
+        text: "Новое мероприятие",
+        start_date: "2016-01-01 00:00",
+        end_date: "2016-01-01 00:00",
+        performers: "",
+        disabled: "0",
+        sid: self.current_schedule_id
+    };
+    $$("task_list").add(task);
+    self.changed = "task_list";
+}
+
+
+function delete_task_from_schedule(){
+    if( !self.current_schedule_id ) return undefined;
+    webix.confirm({
+        title: "ВНИМАНИЕ",    
+        ok:"Да", cancel:"Нет",
+        text:"Вы действительно хотите УДАЛИТЬ этот элемент рассписания?",
+        type:"confirm-warning",
+        callback:function(result){
+            if(result)
+                $$("task_list").remove( $$("task_list").getSelectedId(true) );
+                self.changed = "task_list";
+        }
+    });    
+    
+}
+function refrash_task_list(){
+    if( !self.current_schedule_id ) return undefined;
+        reload_all_tasks(self.current_schedule_id);
+}
+
+function task_list_onAfterEditStop(state, editor, ignoreUpdate){
+    if(state.value != state.old){
+        self.changed = "task_list";
+        webix.notice("Cell value was changed");
+    }  
+}
+/*************************************************************************************/
+webix.editors.$popup.date = {
+    view:"popup", width:250, height:250,
+    body:{ 
+        view:"calendar", 
+        timepicker:true,
+        date: "2016-01-01 00:00"
+        //borderless:true 
+    }
+};
+
+/*************************************************************************************/
+var task_list_columns = [
+    { id:"start_date", header:"Время начала", editor:"date", format:webix.Date.dateToStr("%Y-%m-%d %H:%i"), width:130 },
+    { id:"end_date", header:"Время завершения", editor:"date", format:webix.Date.dateToStr("%Y-%m-%d %H:%i"), width:130 },
+    { id:"text", header:"Описание мероприятия", editor:"text", fillspace: 1 },
+    { id:"disabled", header:"Вык.", template:"{common.checkbox()}", width: 40 }
+];
+
+
+var task_list = {
+    id:"task_list",
+    view:"datatable",
+    //url:"rest->/schedule/data/task",
+    save:"rest->/schedule/data/task",
+    complexData: true,
+    columns: task_list_columns,
+    ajust:true,
+    select:"row",
+    editable: true,
+    editaction:"dblclick"
+};
+
+
+
+
+var task_list_view = {
+    rows:[
+        task_list,
+        { 
+            view:"toolbar", 
+            css: "my_toolbar",
+            elements:[
+                {   view:"button", 
+                    icon: "plus",
+                    type: "icon",
+                    label:"Добавить",
+                    click:add_task_to_schedule
+                },
+                {   view:"button",
+                    icon: "remove",
+                    type: "icon",
+                    label:"Удалить",
+                    click:delete_task_from_schedule
+                },
+                {   view:"button",
+                    icon: "refresh",
+                    type: "icon",
+                    label:"Обновить",
+                    click:refrash_task_list
+                }
+            ]
+        }
+    ]
+};
+/*************************************************************************************/
+

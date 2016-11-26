@@ -1,0 +1,98 @@
+/*************************************************************************************/
+function sort_by_name(name){
+    return function (a,b) {
+        a = a[name];
+        b = b[name];
+        return a>b?1:(a<b?-1:0);   
+    };
+}
+
+function add_schedule_to_list(){
+    var schedule = {
+        name: "Новое расписание",
+        schedule: []
+    };
+    $$("schedule_list").add(schedule);
+}
+
+function delete_schedule_from_list(){
+    webix.confirm({
+        title: "ВНИМАНИЕ",    
+        ok:"Да", cancel:"Нет",
+        text:"Вы действительно хотите УДАЛИТЬ это рассписание?",
+        type:"confirm-warning",
+        callback:function(result){
+            if(result){
+                $$("schedule_list").remove( $$("schedule_list").getSelectedId(true) );
+                self.current_schedule_id = false;
+            }
+        }
+    });
+}
+
+function load_task(id){
+    $$("task_list").clearAll();
+    $$("task_list").load("/schedule/data/task/"+id);
+}
+
+/*************************************************************************************/
+
+var play_icon = "<span class='webix_icon fa-play'> старт</span>";
+var schedule_list_columns = [
+    {
+        id:"name",
+        header:"Наименование расписания",
+        editor:"text",
+        fillspace: 1,
+        sort:sort_by_name("name") 
+    }
+];
+
+
+
+
+var schedule_list = {
+    id:"schedule_list",
+    view:"datatable",
+    url:"rest->/schedule/data/list",
+    save:"rest->/schedule/data/list",
+    complexData: true,
+    columns: schedule_list_columns,
+    ajust:true,
+    select:"row",
+    editable: true,
+    editaction:"dblclick",
+    on: {
+        onAfterSelect: function (data, preserve){
+            self.changed = true;
+            self.current_schedule_id = $$("schedule_list").getSelectedId().id;
+            reload_all_tasks(self.current_schedule_id);          
+        }
+    }  
+};
+
+var schedule_list_view = {
+    rows:[
+        schedule_list,
+        {
+            view:"toolbar",
+            css: "my_toolbar",
+            elements:[
+                {   
+                    view:"button", 
+                    icon: "plus",
+                    type: "icon",
+                    label:"Добавить",
+                    click:add_schedule_to_list
+                },
+                {   
+                    view:"button",
+                    icon: "remove",
+                    type: "icon",
+                    label:"Удалить",
+                    click:delete_schedule_from_list
+                }
+            ]
+        }
+    ]
+};

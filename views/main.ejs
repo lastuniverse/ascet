@@ -1,0 +1,151 @@
+<script type="text/javascript" charset="utf-8">
+
+<%- include('ws/like-firebase') %>
+
+webix.i18n.setLocale("ru-RU");
+webix.ready(function(){
+
+	webix.ui.fullScreen();
+	webix.ui({
+		rows:[
+			{
+				view: "toolbar",
+				id:"toolbar", 
+				css: "my_toolbar",
+				elements:[
+				{
+					view: "icon", 
+					icon: "bars",
+					tooltip: "главное меню",
+					click: function(){
+						if( $$("menu").config.hidden){
+							$$("menu").show();
+						}
+						else
+							$$("menu").hide();
+					}
+				},
+				{
+					view: "label",
+					label: "<%-params.user.profile.sname%> <%-params.user.profile.name%>"
+				},
+				{
+					view: "icon",
+					id: "chat_icon",
+					icon: "comments",
+					tooltip: "Чат",
+					badge:0,
+					click: function(){
+						show_container("chat_container");
+					}
+				},				
+				{
+					view: "icon",
+					icon: "check-square",
+					tooltip: "Текущие задачи",
+					badge:0,
+					click: function(){
+						show_container("events_container");
+					}
+				},
+				{
+					view: "icon",
+					icon: "close",
+					tooltip: "выйти",
+					click: function(){
+						webix.send( "/auth/logout" );
+					}
+				}
+			]
+			},
+			{
+				view: "multiview",
+				cells: [
+					{id: "start_container", template:"start_container"},
+					{id: "users_container", template:"users_container"},
+					{id: "chat_container", template:"chat_container"},
+					{id: "tasks_container", template:"tasks_container"},
+					{id: "schedules_container", template:"schedules_container"},
+					{id: "events_container", template:"events_container"},
+					{id: "profile_container", template:"profile_container"}
+				]
+			}
+
+		]
+	});
+
+	webix.ui({
+		view: "sidemenu",
+		id: "menu",
+		width: 200,
+		position: "left",
+		state:function(state){
+			var toolbarHeight = $$("toolbar").$height;
+			state.top = toolbarHeight;
+			state.height -= toolbarHeight;
+		},
+		css: "my_menu",
+		body:{
+
+			view:"list",
+			borderless:true,
+			scroll: false,
+
+			template: "<span class='webix_icon fa-#icon#'></span> #value#",
+			data:[
+				{id: 1, value: "Пользователи", path: "users_container", icon: "user"},
+				{id: 2, value: "Расписания", path: "schedules_container", icon: "list"}, 
+				//{id: 3, value: "Текущее расписаниe", path: "/schedule/views/current", icon: "list"}, 
+				{id: 4, value: "Задачи", path: "tasks_container", icon: "check-square"},
+				{id: 5, value: "Чат", path: "chat_container", icon: "comments"},
+				{id: 6, value: "Мой профиль", path: "profile_container", icon: "cog"}
+			],
+			on:{
+				onAfterSelect: function(id){
+					//webix.message("Selected: "+id)
+					//$$("menu").hide();
+					//load_content(this.getItem(id).path);
+					$$("menu").hide();
+					show_container(this.getItem(id).path);
+				}
+			},
+			select:true,
+			type:{
+				height: 40
+			}
+		}
+	});
+
+	my.libs.likeFirebase.ready(function(){
+		<%- include('users/main') %>
+	});
+	my.libs.likeFirebase.ready(function(){
+		<%- include('chat/main') %>
+	});
+	my.libs.likeFirebase.ready(function(){
+		<%- include('schedules/main') %>
+	});	
+	my.libs.likeFirebase.ready(function(){
+		<%- include('tasks/main') %>
+	});	
+
+		
+
+
+});
+
+
+
+
+function show_container(container){
+	//$$("mview").setValue("some_view");
+    //is equal to 
+    $$(container).show();
+}
+
+
+
+
+</script>
+
+

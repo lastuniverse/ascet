@@ -1,0 +1,29 @@
+/*************************************************************************************/
+var chat_user_list = {
+    id:"chat_user_list",
+    complexData: true,
+    view:"list",
+    width:250,
+    reciver: "shared",
+    url:my.proxy.users,
+//    save:"likefb->users",    
+    //template:"#value# (#profile.sname# #profile.name#)",
+    select:false,
+};
+
+
+
+var chat_user_list_view = {
+    rows:[
+        chat_user_list,
+        { 
+            view:"toolbar",
+            elements:[
+                { view:"button", icon: "_send", type: "icon" }
+            ]
+        }        
+    ]
+};
+
+
+

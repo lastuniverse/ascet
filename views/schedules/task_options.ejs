@@ -1,0 +1,75 @@
+/*************************************************************************************/
+function refrash_task_options(){
+    if( !self.current_schedule_id ) return undefined;
+        //reload_all_tasks(self.current_schedule_id);
+}
+
+/*************************************************************************************/
+
+var  test_options = [
+    {"id":1,"value":"Ray M. Parra"},
+    {"id":2,"value":"Sabrina N. Hermann"},
+    {"id":3,"value":"Lane E. Dion"},
+    {"id":4,"value":"Bradly N. Mauro"}
+];
+
+function confirm_burtton(){
+    var json = $$("task_options_form").getValues();
+    //webix.alert(JSON.stringify(json, null, 2));
+    //$$("task_options_form").save();
+    
+    $$('task_list').updateItem(json.id,json);
+}
+
+var task_options_form = {
+    id:"task_options_form",
+    view:"form",
+    width: 280,
+    complexData: true,
+    scroll: "y",
+    elements:[
+        { view:"checkbox", name:"disabled", labelRight:"Отключить"},
+        { view:"datepicker", name:"start_date", label:"Начать", stringResult:"true", timepicker:true,format:webix.Date.dateToStr("%Y-%m-%d %H:%i")},
+        { view:"datepicker", name:"end_date", label:"Завершить", stringResult:"true", timepicker:true,format:webix.Date.dateToStr("%Y-%m-%d %H:%i")},
+        { view:"textarea", name:"text", height:100, label:"Описание мероприятия", labelPosition:"top" },
+        { view:"combo", name:"user", label:"Ответственный за исполнение", labelPosition:"top",
+            options:{ 
+                body:{ 
+                    url: my.proxy.users, template:"#function#" 
+                } 
+            }
+        },        
+        { view:"multicombo", name:"users", label:"Исполнители", labelPosition:"top",
+            options:{ 
+                body:{ 
+                    url: my.proxy.users, template:"#function#" 
+                } 
+            }
+        },
+        { view:"button", value:"Сохранить", align:"center", click:confirm_burtton }
+    ]
+
+    //url:"rest->/schedule/data/task",
+    //save:"rest->/schedule/data/task",
+    //complexData: true
+};
+
+var task_options_view = {
+    rows:[
+        task_options_form,
+        { 
+            view:"toolbar", 
+            css: "my_toolbar",
+            elements:[
+                {   view:"button",
+                    icon: "refresh",
+                    type: "icon",
+                    label:"Обновить",
+                    click:refrash_task_options
+                }
+            ]
+        }
+    ]
+};
+/*************************************************************************************/
+

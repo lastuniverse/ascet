@@ -1,0 +1,105 @@
+function sort_by_name(name){
+    return function (a,b) {
+        a = a[name];
+        b = b[name];
+        return a>b?1:(a<b?-1:0);   
+    }
+}
+
+var columns_names = [
+    { id:"login", header:"Логин", editor:"text", template:"{common.treetable()} #login#", fillspace: 1, sort:sort_by_name("login") },
+    { id:"password", header:"Пароль", editor:"password", type: "password", template:"•••", fillspace:1 },
+    { id:"info", header:"Описание", editor:"text", fillspace: 4, sort:sort_by_name("info") },
+    { id:"disabled", header:"Заблокировать", template:"{common.checkbox()}", fillspace: 0.5, sort:sort_by_name("disabled") }
+];
+
+var userlist = {
+    id:"userlist",
+    view:"datatable",
+    url:"rest->/user/data/list",
+    save:"rest->/user/data",
+    complexData: true,
+    columns: columns_names,
+    ajust:true,
+    select:"row",
+    editable: true,
+    editaction:"dblclick"
+};
+
+
+
+function add_user(){
+    var user = {
+        login: "new user",
+        password: "new password",
+        info: "Информация о пользователе",
+        disabled: "0",
+    }
+    $$("userlist").add(user);
+}
+
+function delete_user(){
+    webix.confirm({
+        title: "ВНИМАНИЕ",    
+        ok:"Да", cancel:"Нет",
+        text:"Вы действительно хотите УДАЛИТЬ этого пользователя? При желании его можно просто отключить.",
+        type:"confirm-warning",
+        callback:function(result){
+            if(result)
+                $$("userlist").remove( $$("userlist").getSelectedId(true) );
+        }
+    });     
+}
+
+function show_user_profile(){
+
+}
+
+var users_list_view = {
+    rows:[
+        userlist,
+        { 
+            view:"toolbar",
+            elements:[
+                {   view:"button", 
+                    icon: "plus",
+                    type: "icon",
+                    label:"Добавить",
+                    click:add_user
+                },
+                {   view:"button",
+                    icon: "remove",
+                    type: "icon",
+                    label:"Удалить",
+                    click:delete_user
+                },
+                { 
+                    view:"button", 
+                    icon: "ellipsis-v",
+                    type: "icon",
+                    width: 40
+                },                   
+                {   view:"button",
+                    icon: "user",
+                    type: "icon",
+                    label:"Профиль",
+                    click:show_user_profile
+                }
+            ]
+        }        
+    ]
+};
+
+webix.ui({
+    id: "content",
+    type:"space", 
+    cols: [
+        { 
+            header:"<center>Пользователи</center>", 
+            collapsed:false,
+            //gravity: 0.4,
+            body: users_list_view
+        },
+    ]    
+},$$("content"));
+

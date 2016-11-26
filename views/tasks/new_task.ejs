@@ -1,0 +1,210 @@
+function get_form(prefix){
+/*************************************************************************************/
+    function save_form(){
+
+        var form = $$(prefix+"_task_form");
+        if(form.isDirty()){
+
+            // проверяем заполнение формы
+            if(!form.validate()){
+                webix.message({ type:"error", expire:10000, text:"Вы не заполнили одно или несколько из обязательных полей" });
+                return false;
+            }
+
+            // получаем ссылки на объекты с которыми работаем
+            var list = $$("cur_task_list");
+            var uploader = $$(prefix+'_task_uploader');
+
+
+            // проверяем, отправленны ли файлы
+            if( ! uploader.isUploaded() ){
+                webix.message({ type:"error", expire:10000, text:"Дождитесь полной загрузки файлов" });
+                return false;
+            }
+
+
+            // получаем данные из формы
+            var json = form.getValues();
+            
+            // обрабатываем данные о загруженных файлах
+            json.records = [];
+            uploader.files.data.each(function(obj){
+                var record = JSON.parse(JSON.stringify(obj));
+                json.records.push(record);
+            });
+
+            //list.unselectAll();
+            console.log("find uploader");
+
+            // отправляем их на сервер
+            my.data.tasks.insert(json, function(reply){
+                if (reply.status == "error" ){
+                    //console.log("REPLY ERROR: ", JSON.stringify(reply));
+                    callback.error("", null, reply.error);
+                    view.remove(id);
+                    webix.message({ type:"error", expire:10000, text:reply.message });
+                }
+                else{
+                    //console.log("REPLY OK: ", JSON.stringify(reply));
+                    callback.success("", { newid: reply.newid }, -1);
+                }
+                
+            });
+            
+
+            // webix.ajax().post("/task/data/new",  json, function(text, data, XmlHttpRequest){ 
+            //     data = data.json();
+            //     if( data.status == "error" )
+            //         return webix.message({ type:"error", expire:10000, text:data.message });
+
+            //     // заносим в строку списка измененные данные
+            //     // эта часть уйдет когда будут сделаны 
+            //     // сообщения от сервера об обновлении 
+            //     // элементов списка по вэбсокетам
+            //     if( prefix == "edit" && json.id )
+            //         list.updateItem(json.id,json);
+
+
+            //     if( data.newid )
+            //         $$(prefix+'_task_id').setValue(data.newid);
+            //         return webix.message(data.message);
+            // });
+        }
+    }
+
+/*************************************************************************************/
+    var  task_uploader = { 
+                view: "uploader", value: 'Прикрепить документы', 
+                id:prefix+"_task_uploader", name:"records",
+                link:prefix+"_task_filelist",  upload:"/files/file/upload",
+                on: {
+                    onFileUploadError: function(item, response){
+                        webix.message({ type:"error", expire:10000, text:response.message });
+                    },
+                    onBeforeFileAdd: function(item){
+                        if(item.size < 1*1024*1024 )
+                            return true;
+                        webix.message({ type:"error", expire:10000, text:"Файл не долже быть болше 100 мегабайт!" });
+                        return false;
+                    }
+                }
+                //autosend: false
+    };
+
+    var  task_filelist = {
+        view:"list",  id:prefix+"_task_filelist", type:"uploader",
+        select:"row", autoheight:true, borderless:true,
+        on: {
+            onItemClick: function(id, e, node){
+                var item = this.serialize();
+                //getItem(id);
+                webix.alert(JSON.stringify(item));
+                //... some code here ... 
+            }
+        }
+    };
+/*************************************************************************************/
+    var task_money = { 
+        hidden: true,
+        id: prefix+"_task_money",
+        rows:[ 
+        { view:"text", name:"order.materials", label:"Стоимость материалов", labelWidth: 180 }, //, type:"icon", icon:"rub"
+        { view:"text", name:"order.services", label:"Стоимость услуг", labelWidth: 180 }
+    ]};
+
+    var task_money_view = {
+        rows:[
+            { view:"button", value:"Дополнительные данные", align:"center", click:show_task_money},
+            task_money
+        ]
+    };
+
+    function show_task_money(){
+        var view = $$(prefix+"_task_money"); //this.getParentView().getChildViews()[1];
+        if( view.isVisible() ) view.hide();
+        else view.show();
+    }
+
+/*************************************************************************************/
+    var task_form = {
+        id:prefix+"_task_form",
+        view:"form",
+        //gravity: 0.01,
+        minWidth: 400,
+        complexData: true,
+        //scroll: "y",
+        //options: task_data,
+        //isolate:true,
+        elements:[
+            { view:"text", name:"id", hidden: true, id: prefix+"_task_id"},
+            //{ view:"checkbox", name:"disabled", labelRight:"Сохранять задачу как шаблон"},
+            { view:"datepicker", name:"start_date", label:"Начать", stringResult:"true", timepicker:true,format:webix.Date.dateToStr("%Y-%m-%d %H:%i")},
+            { view:"datepicker", name:"end_date", label:"Завершить", stringResult:"true", timepicker:true,format:webix.Date.dateToStr("%Y-%m-%d %H:%i")},
+            { view:"textarea", name:"text", minHeight:100, label:"Описание задачи", labelPosition:"top", gravity: 1},
+            { view:"combo", name:"user", label:"Ответственный за исполнение", labelPosition:"top",
+                options:{ 
+                    body:{ 
+                        url: my.proxy.users, template:"#function#" 
+                    } 
+                }
+            },
+            { view:"multicombo", name:"users", label:"Исполнители", labelPosition:"top",
+                options:{ 
+                    body:{ 
+                        url: my.proxy.users, template:"#function#" 
+                    } 
+                }
+            },
+            task_uploader,
+            task_filelist,
+            task_money_view,
+            { view:"button", value:"Исполнять!", align:"center", type: "form", click:save_form },
+            { view:"template", gravity: 0 }
+        ],
+        rules:{
+            start_date: webix.rules.isNotEmpty,
+            end_date: webix.rules.isNotEmpty,
+            text: webix.rules.isNotEmpty,
+            user: webix.rules.isNotEmpty
+        }        
+        //url:"rest->/schedule/data/task",
+        //save:"rest->/schedule/data/task",
+        //complexData: true
+    };
+
+
+
+
+
+/*************************************************************************************/
+    // var task_data = {
+    //     "disabled":"0",
+    //     "id":"",
+    //     start_date: webix.Date.dateToStr("%Y-%m-%d %H:%i")(new Date()),
+    //     end_date: webix.Date.dateToStr("%Y-%m-%d %H:%i")(new Date()),
+    //     "text":"",
+    //     "user":"",
+    //     "users":"",
+    //     "records":[],
+    //     "order":{
+    //         "materials":0,
+    //         "services":0
+    //     }
+    // };
+
+
+    // var file_item = {
+    //     "file":{},
+    //     "name":"1.txt",
+    //     "id":1461877218494,
+    //     "size":8,
+    //     "sizetext":"8 b",
+    //     "type":"txt",
+    //     "status":"server",
+    //     "percent":100,
+    //     "progress":100,
+    //     "sname":"e2afafc5966cbc416aaf0578db031445"
+    // };
+
+    return task_form;
+}

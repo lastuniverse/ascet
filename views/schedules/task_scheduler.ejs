@@ -1,0 +1,160 @@
+
+/*************************************************************************************/
+//var self.scheduler = null;
+if( !self.onevents ) self.onevents = {};
+
+/*************************************************************************************/
+function schedule_play(){ }
+function schedule_pause(){ }
+function schedule_stop(){ }
+/*************************************************************************************/
+function load_schedule(id){
+    if( self.scheduler && id ){
+        webix.ajax().get("/schedule/data/list/"+id, function(text, data, XmlHttpRequest){
+            var current = data.json();
+            self.scheduler.clearAll();
+            self.scheduler.parse(current.schedule,"json");
+            
+            var first = current.schedule.reduce(function(sum, ev) {
+                if(sum.start_date > ev.start_date )
+                    return ev;
+                return sum;
+            }, JSON.parse(JSON.stringify(current.schedule[0])) );
+          
+            //self.scheduler.config.preserve_scroll = false;
+            var date = new Date(first.start_date); //;
+            self.scheduler.setCurrentView(date, "week");
+            //self.scheduler.expand();
+            //self.scheduler.load("/schedule/data/task/"+id,"json");
+        });
+    }
+}
+
+/*************************************************************************************/
+function schedule_onEventChanged(id,ev){
+    if( self.current_schedule_id ){
+        //ev.sid = self.current_schedule_id;
+        webix.ajax().put("/schedule/data/task/"+id, ev, function(text, data, XmlHttpRequest){
+            self.changed = "task_scheduler";
+        });
+
+    }
+}
+function schedule_onEventAdded(id,ev){
+    //return false;
+    if( self.current_schedule_id ){
+        ev.sid = self.current_schedule_id;
+        //webix.alert("sid: "+self.current_schedule_id);
+        webix.ajax().post("/schedule/data/task", ev, function(text, data, XmlHttpRequest){
+            self.changed = "task_scheduler";
+            var json = JSON.parse(text);
+            //webix.alert("data: "+JSON.stringify(json));
+            //webix.alert("text: "+text);
+            if(json && json.newid){
+                if( typeof json.newid == "string" && json.newid.length > 0 ){
+                    self.scheduler.changeEventId(ev.id,json.newid);
+                }else{
+                }
+            }
+        });
+    }
+}
+function schedule_onEventDeleted(id){
+    if( self.current_schedule_id ){
+        self.changed = "task_scheduler";
+        webix.ajax().del("/schedule/data/task/"+id, { id:id,sid:self.current_schedule_id } , function(text, data, XmlHttpRequest){
+        });
+    }
+}
+
+/*************************************************************************************/
+var scheduler_locale={
+    date:{
+        month_full:["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль",
+        "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
+        month_short:["Янв", "Фев", "Дек", "Апр", "Май", "Июн", "Июл", "Авг", "Сен",
+        "Окт", "Ноя", "Дек"],
+        day_full:["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница",
+        "Суббота"],
+        day_short:["Вс.", "Пн.", "Вт.", "Ср.", "Чт.", "Пт.", "Сб."]
+    },
+    labels:{
+        dhx_cal_today_button:"Сегодня",
+        day_tab:"День",
+        week_tab:"Неделя",
+        month_tab:"Месяц",
+        new_event:"Новое мероприятие",
+        icon_save:"Записать",
+        icon_cancel:"Отменить",
+        icon_details:"Детали",
+        icon_edit:"Править",
+        icon_delete:"Удалить",
+        confirm_closing:"", //Your changes will be lost, are you sure?
+        confirm_deleting:"Задача будет удалена безвозвратно, хотите продолжить?",
+        section_description:"Описание",
+        section_time:"Период",
+        section_performers:"Исполнитель",
+        section_disabled:"Отключено"
+    }
+};
+
+
+
+var scheduler_list = {
+    tabs:["day","week", "month"],
+    view:"dhx-scheduler",
+    id: "scheduler_id",
+    complexData: true,
+    save: "connector->/schedule/standart",
+    date:new Date(),
+    //date:new Date(2009,6,1),
+    mode:"week",
+    init: function(){
+        if(!self.scheduler){
+            console.log ("INIT");
+            self.scheduler = this.getScheduler();
+            self.scheduler.config.xml_date="%Y-%m-%d %H:%i";
+            self.scheduler.config.edit_on_create = true;
+            self.scheduler.config.multi_day = true;
+            self.scheduler.locale = scheduler_locale;
+
+            self.scheduler.xy.min_event_height = 21; // 30 minutes is the shortest duration to be displayed as is
+
+            self.onevents.onEventChanged = self.scheduler.attachEvent("onEventChanged", schedule_onEventChanged);
+            self.onevents.onEventAdded = self.scheduler.attachEvent("onEventAdded", schedule_onEventAdded);
+            self.onevents.onEventDeleted = self.scheduler.attachEvent("onEventDeleted", schedule_onEventDeleted);
+
+        }else{
+            console.log ("pass INIT");
+        }
+    },
+    ready: function(){
+        //if(self.scheduler)
+            load_schedule(self.current_schedule_id);
+    }
+};
+
+var task_scheduler_view = {
+    rows:[
+        scheduler_list,
+        { 
+            view:"toolbar", 
+            css: "my_toolbar",
+            elements:[
+                {   view:"button", 
+                    icon: "play",
+                    type: "icon",
+                    label:"Запустить",
+                    click:schedule_play
+                },
+                {   view:"button",
+                    icon: "refresh",
+                    type: "icon",
+                    label:"Обновить",
+                    click:refrash_task_list
+                }
+            ]
+        }
+    ]
+};
+

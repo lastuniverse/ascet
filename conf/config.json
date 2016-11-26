@@ -1,0 +1,12 @@
+{
+    "serverType": "http",
+    "port": 3000,
+    "webSocket": true,
+    "options": {
+		"key": "./cert/server.key",
+		"cert": "./cert/server.crt",
+		"ca": "./cert/server.csr",
+		"requestCert": true,
+		"rejectUnauthorized": false
+    }
+}

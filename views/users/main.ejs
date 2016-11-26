@@ -1,0 +1,33 @@
+
+/*************************************************************************************/
+
+<%- include('user_list') %>
+
+<%- include('user_profile') %>
+
+/*************************************************************************************/
+
+webix.ui({
+    id: "users_container",
+    type:"space", 
+    cols: [
+        { 
+            header:"<center>Менеджер пользователей</center>", 
+            collapsed:false,
+            gravity: 1,
+            body: user_list_view
+        },
+        {view: "resizer"},
+        { 
+            header:"<center>Профиль пользователя</center>",
+            collapsed:false,
+            gravity: 0.4,
+            body: user_profile_view
+        },
+        {view: "template", gravity: 0}
+    ]
+},$$("users_container"));
+
+$$('user_profile_form').bind($$('user_list'));
+
+

@@ -1,0 +1,85 @@
+/*************************************************************************************/
+
+function send_message(){
+    var tabview = $$("chat_box_tab_view");
+    var tabs = tabview.getTabbar();
+    var chat_id = tabs.getValue();
+
+    var msg = $$("chat_message").getValue();
+    if( msg ){
+        var json = {
+            emit:"chat/message",
+            reciver: messages.tabs[chat_id].user_id,
+            message: msg
+        };
+        ws.send(JSON.stringify(json), {mask: true});
+    }
+    $$("chat_message").setValue("");
+    $$("chat_message").$setValue("");
+    
+    $$("chat_message").refresh();
+    webix.UIManager.setFocus($$("send_button"));
+    webix.UIManager.setFocus($$("chat_message"));
+
+}
+
+function refrash_user_profile(){}
+
+/*************************************************************************************/
+
+var chat_box_msg = [
+    { view:"button", id:"send_button",icon: "send", type: "icon", label:"Отправить", width: 90, click:send_message },
+    { view:"text", id:"chat_message", name:"msg" }
+];
+
+function chat_template(obj){
+   return "<span class='chat'>"+users.list[obj.sender].function+"</span> ("+users.list[obj.sender].profile.sname+" "+users.list[obj.sender].profile.name+") "+obj.date+"<br/>" + obj.message;
+}
+
+var chat_box_msg_list = {
+    id: "chat_shared",
+    complexData: true,
+    view: "list",
+    template:chat_template,
+    type:{ height:"auto" }
+    
+};
+
+
+var chat_box_tab_view = {
+    view: "tabview",
+    id: "chat_box_tab_view",
+    tabMinWidth:200, 
+    tabMoreWidth:40,
+    moreTemplate:"Show more", 
+    //or moreTemplate:function(){ return "Show more" },
+    popupWidth:300,
+    popupTemplate:"#text#",
+    yCount:10,    
+    cells: [
+        {
+            header:"Общий чат",
+            minWidth: 100,
+            id: "tab_shared",
+            body: chat_box_msg_list
+        }
+    ]
+};
+
+
+
+var chat_box_view = {
+    rows:[
+        chat_box_tab_view,
+        { 
+            view:"toolbar", 
+            css: "my_toolbar",
+            elements: chat_box_msg
+        }
+    ]
+};
+
+
+
+
+

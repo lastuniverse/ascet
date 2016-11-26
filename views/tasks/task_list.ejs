@@ -1,0 +1,155 @@
+/*************************************************************************************/
+my_onclick = function(id){
+    var el = document.getElementById(id);
+    el.style.display = (el.style.display == 'none') ? 'block' : 'none';
+    //alert("id: "+id);
+    return false;
+};
+/*************************************************************************************/
+var task_item = {
+    "disabled":"0",
+    "id":"1461879209164003",
+    "start_date":"2016-04-28 23:33",
+    "end_date":"2016-04-28 23:33",
+    "text":"",
+    "user":"",
+    "users":"",
+    "records":[
+        {"file":{},"name":"25-piano-sf.rar","id":1461879189137,"size":86736125,"sizetext":"82.72 Mb","type":"rar","status":"server","percent":100,"progress":100,"sname":"f3df84a374772249807317f4eaabef80"},
+        {"file":{},"name":"1111.qtr","id":1461879191132,"size":3231,"sizetext":"3.16 Kb","type":"qtr","status":"server","percent":100,"progress":100,"sname":"90abdd7b9e24c7996a0f0c4fc7a84d43"}
+    ],
+    "_id":"Va7Buu3RxSHWdlI1"
+};
+/*************************************************************************************/
+
+function get_user_name(id,unnamed,unknow){
+    unnamed = unnamed||"Безымянный";
+    unknow = unknow||"Неизвестно кто";
+    if(!id)
+        return unknow;
+    if(!users[id])
+        return unnamed;
+    return users[id].function;
+}
+
+function create_task_item(item){
+    console.log("create_task_item: ",item);
+    var json = {};
+    json.owner = get_user_name(item.owner,"Не назначен");
+    json.user = get_user_name(item.user);
+    // получаем исполнителей
+    json.users = "";
+    item.users.split(",").forEach(function(id){
+        json.users += get_user_name(id)+", ";
+    });
+    json.files = "";
+    if(item.records)
+        item.records.forEach(function(file){
+            json.files+="<i class='fa fa-file' aria-hidden='true'></i> "+
+            "<a class='mylink' href='/files/file/"+file.sname+"/"+file.name+"' download>"+file.name+"</a>, ";
+        });
+
+
+    var info = 
+        "<i class='fa fa-star' aria-hidden='true'></i> "+json.owner+
+        "<br><i class='fa fa-user' aria-hidden='true'></i> "+json.user+
+        //"<br><i class='fa fa-users' aria-hidden='true'></i> "+json.users+
+        "<br><i class='fa fa-calendar' aria-hidden='true'></i> "+item.start_date+
+        "<br><i class='fa fa-calendar' aria-hidden='true'></i> "+item.end_date;
+    var ext = "";
+    var main = 
+        "<i class='fa fa-envelope' aria-hidden='true'></i> "+item.text+
+        "<hr>"+json.files;
+        //"<br><i class='fa fa-plus-circle fa-lg' aria-hidden='true' onclick='my_onclick(\"id_"+item.id+"\")' style='float:right;'></i> ";
+    var msg = 
+        "11111111111111111111<br>"+
+        "22222222222222222222<br>"+
+        "33333333333333333333<br>"+
+        "44444444444444444444<br>"+
+        "55555555555555555555<br>";
+
+    console.log("users: ", user.id, item.owner);
+    var test = ( item.owner == user.id )? true : false;
+
+    var task = "";
+    if(test){
+        task =
+        "<div>"+
+            "<div class='row'>"+
+                "<div class='box lsidebar sideinfo "+item.color+"'>"+info+"</div>"+
+                "<div class='box rsidebar sidetext'>"+main+"</div>"+
+            "</div>"+
+            "<div  id='id_"+item.id+"' style='display:none;'>"+
+                "<div class='rowmsg'>"+
+                    "<div class='box lsidebar msginfo'>"+msg+"</div>"+
+                    "<div class='box rsidebar msgtext'>"+msg+"</div>"+
+                "</div>"+
+                "<div class='rowmsg'>"+
+                    "<div class='box lsidebar msginfo'>"+msg+"</div>"+
+                    "<div class='box rsidebar msgtext'>"+msg+"</div>"+
+                "</div>"+
+            "</div>"+
+        "</div>";
+    }else{
+        task =
+        "<div>"+
+            "<div class='row'>"+
+                "<div class='box lsidebar sidetext'>"+main+"</div>"+
+                "<div class='box rsidebar sideinfo "+item.color+"'>"+info+"</div>"+
+            "</div>"+
+            "<div id='id_"+item.id+"' style='display:none;'>"+
+                "<div class='rowmsg'>"+
+                    "<div class='box lsidebar msgtext'>"+msg+"</div>"+
+                    "<div class='box rsidebar msginfo'>"+msg+"</div>"+
+                "</div>"+
+                "<div class='rowmsg'>"+
+                    "<div class='box lsidebar msgtext'>"+msg+"</div>"+
+                    "<div class='box rsidebar msginfo'>"+msg+"</div>"+
+                "</div>"+
+            "</div>"+
+        "</div>";
+    }
+
+
+    var ret =
+    "<div class='main'>"+
+    task+
+    "</div>";
+
+    return ret;
+
+}
+/*************************************************************************************/
+var cur_task_list = {
+    id:"cur_task_list",
+    view:"list",
+    select:true,
+    type:{ height:"auto" },
+    complexData: true,
+    css:"my_item",
+    template: create_task_item,
+    url:my.proxy.tasks,
+    save:my.proxy.tasks,
+    on:{
+        // onAfterSelect
+        onItemDblClick: function(id){
+            //var json = this.getItem(id);
+            //$$("edit_task_form").parse(json);
+            my_onclick("id_"+id);
+        }
+    }
+    
+};
+
+var cur_task_list_view = {
+    rows:[
+        cur_task_list,
+        { 
+            view:"toolbar",
+            elements:[
+                { view:"button", icon: "_send", type: "icon" },
+            ]
+        }        
+    ]
+};
+

@@ -1,0 +1,67 @@
+/*************************************************************************************/
+var user_profile_form = {
+    id:"user_profile_form",
+    view:"form",
+    complexData: true,
+    width: 360,
+    scroll: "y",
+    elements:[
+        { view:"fieldset", label:"Авторизационные данные", body:{
+            rows:[ 
+            { view:"text", name:"login", label:"Логин" },
+            { view:"text", name:"password", type:"password", label:"Пароль" },
+            { view:"checkbox", name:"admin", labelRight:"Является администратором"},
+            { view:"checkbox", name:"disabled", labelRight:"Отключить пользователя" }
+        ]}},
+        { view:"fieldset", label:"Личные данные", body:{
+            rows:[ 
+            { view:"text", name:"profile.sname", label:"Фамилия" },
+            { view:"text", name:"profile.name", label:"Имя" },
+            { view:"text", name:"profile.mname", label:"Отчество" },
+            { view:"datepicker", name:"b_date", label:"День рождения", labelWidth: 120, stringResult:"true", format:webix.Date.dateToStr("%Y-%m-%d")},
+            { view:"textarea", name:"profile.info", height:100, label:"Информация о пользователе", labelPosition:"top" },
+        ]}},
+        { view:"fieldset", label:"Служебные данные", body:{
+            rows:[ 
+            { view:"text", name:"function", label:"Должность" },
+            { view:"multicombo", name:"profile.subordinates", label:"Подчиненные", id:"user_subordinate", labelPosition:"top", 
+                options:{ 
+                    body:{ 
+                        url: my.proxy.users, template:"#function#" 
+                    } 
+                }
+            }
+        ]}},
+        { view:"fieldset", label:"Контактные данные", body:{
+            rows:[ 
+            { view:"text", name:"profile.email", label:"email", type:"email" },
+            { view:"text", name:"profile.wphone", label:"рабочий тел.", labelWidth: 120, type:"tel" },
+            { view:"text", name:"profile.mphone", label:"мобильный тел.", labelWidth: 120, type:"tel" }
+        ]}}
+    ],
+    on:{
+        onChange: function(newv, oldv){
+            var json = $$("user_profile_form").getValues();
+            if( json.id )
+                this.save();
+        }
+    }   
+};
+
+var user_profile_view = {
+    rows:[
+        user_profile_form,
+        { 
+            view:"toolbar", 
+            css: "my_toolbar",
+            elements:[
+                {   view:"button", 
+                    icon: "dot",
+                    type: "icon"
+                }
+            ]
+        }
+    ]
+};
+/*************************************************************************************/
+

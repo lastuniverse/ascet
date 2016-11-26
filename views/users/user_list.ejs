@@ -1,0 +1,78 @@
+/*************************************************************************************/
+function sort_by_name(name){
+    return function (a,b) {
+        a = a[name];
+        b = b[name];
+        return a>b?1:(a<b?-1:0);   
+    };
+}
+
+function add_user(){
+    var user = {
+        login: "new user",
+        password: "new password",
+        function: "Информация о пользователе",
+        disabled: "0",
+    };
+    $$("user_list").add(user);
+}
+
+function delete_user(){
+    webix.confirm({
+        title: "ВНИМАНИЕ",    
+        ok:"Да", cancel:"Нет",
+        text:"Вы действительно хотите УДАЛИТЬ этого пользователя? При желании его можно просто отключить.",
+        type:"confirm-warning",
+        callback:function(result){
+            if(result)
+                $$("user_list").remove( $$("user_list").getSelectedId(true) );
+        }
+    });     
+}
+
+
+/*************************************************************************************/
+var columns_names = [
+    { id:"login", header:"Логин", editor:"text", template:"{common.treetable()} #login#", fillspace: 1, sort:sort_by_name("login") },
+    { id:"password", header:"Пароль", editor:"password", type: "password", template:"•••", fillspace:1 },
+    { id:"function", header:"Описание", editor:"text", fillspace: 4, sort:sort_by_name("function") },
+    { id:"admin", header:"Админ", template:"{common.checkbox()}", width: 55, sort:sort_by_name("admin") },
+    { id:"disabled", header:"Откл.", template:"{common.checkbox()}", width: 40, sort:sort_by_name("disabled") }
+];
+
+var user_list = {
+    id:"user_list",
+    view:"datatable",
+    url:my.proxy.users,
+//    save:my.proxy.users,
+    complexData: true,
+    columns: columns_names,
+    ajust:true,
+    select:"row",
+    editable: true,
+    editaction:"dblclick"
+};
+
+var user_list_view = {
+    rows:[
+        user_list,
+        { 
+            view:"toolbar",
+            elements:[
+                {   view:"button", 
+                    icon: "plus",
+                    type: "icon",
+                    label:"Добавить",
+                    click:add_user
+                },
+                {   view:"button",
+                    icon: "remove",
+                    type: "icon",
+                    label:"Удалить",
+                    click:delete_user
+                }
+            ]
+        }        
+    ]
+};
+

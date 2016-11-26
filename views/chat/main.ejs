@@ -1,0 +1,190 @@
+/*************************************************************************************/
+var users = my.data.users.hash;
+var user = my.data.user.data[0];
+/*************************************************************************************/
+
+<%- include('chat_box') %>
+<%- include('chat_list') %>
+
+/*************************************************************************************/
+
+webix.ui({
+    id: "chat_container",
+    type:"space", 
+    cols: [
+        chat_box_view,
+        {view: "resizer"},
+        { 
+            header:"<center>Пользователи</center>",
+            collapsed:false,
+            gravity: 0.4,
+            body: chat_user_list_view
+        },
+        {view: "template", gravity: 0}
+    ]
+},$$("chat_container"));
+
+
+attach_events_to_chat("shared", "onAfterAdd");
+attach_events_to_chat("shared", "onAfterLoad");
+
+
+
+webix.UIManager.addHotKey("Enter", send_message_to_chat, $$("chat_message"));
+webix.UIManager.setFocus($$("chat_message"));
+
+$$("chat_user_list").attachEvent("onItemClick", function(id, e, node){
+    add_chat_view(id,true);
+    webix.UIManager.setFocus($$("chat_send_button"));
+    webix.UIManager.setFocus($$("chat_message"));
+    return true;
+});
+
+/*************************************************************************************/
+function add_chat_view(id,open){
+    var tabview = $$("chat_box_tab_view");
+    var title = users[id]?users[id].function:"Общий чат";
+    //var tab_id = "tab_"+id;
+    var chat_id = "chat_"+id;
+    if( !$$(chat_id) ){
+        chat_box_msg_list.id = chat_id;
+        tabview.addView({
+            header:title,
+            //id: tab_id,
+            close:true,
+            minWidth: 200,
+            body: chat_box_msg_list
+        });
+        attach_events_to_chat(id, "onAfterAdd");
+        attach_events_to_chat(id, "onAfterLoad");
+    }
+
+
+    if(open)
+        tabview.setValue(chat_id);
+    return true;    
+}
+/*************************************************************************************/
+function attach_events_to_chat(id, eventname){
+    var chat_view = $$("chat_"+id);
+    chat_view.attachEvent(eventname, function(msg_id, index){
+        chat_view.filter(function(obj){
+            if( id == "shared" ){
+                if( obj.reciver == id )
+                    return true;
+            }else{
+                if( obj.sender == user.id && obj.reciver == id )
+                    return true;
+                if( obj.sender == id && obj.reciver == user.id )
+                    return true;
+            }
+            return false;
+        });
+        chat_view.sort('#date#', 'asc');
+        chat_view.showItem(chat_view.getLastId());
+    });
+
+}
+/*************************************************************************************/
+my.data.chat_badges = {};
+my.data.chat_badges.chat_shared = 0;
+my.data.chat_badges.full = 0;
+
+Object.keys(users).forEach(function(target_id){
+    my.data.chat_badges["chat_"+target_id]=0;
+});
+
+my.data.chat.on("insert",function(json){
+    var badge_id = "";
+    if( json.sender != user.id ){
+        if( json.reciver == "shared")
+            badge_id = "chat_shared";
+        if( json.reciver == user.id)
+            badge_id = "chat_"+json.sender;
+    }
+    if(badge_id){
+        var cur_tab = null;
+        var tabs = null;
+        var tabview = $$("chat_box_tab_view");
+        if( tabview ){
+            tabs = tabview.getTabbar();
+            if( tabs )
+                cur_tab = tabs.getValue();
+        }
+        if( badge_id == cur_tab )
+            badge_id = "";
+    }
+    if(badge_id){
+        console.log("chat_bages_show 0: ",my.data.chat_badges.full);
+        my.data.chat_badges[badge_id]++;
+        my.data.chat_badges.full++;
+        chat_bages_show();
+    }
+
+    // если отправитель не мы, проигрываем 
+    // звук "входящее сообщение"
+    if( json.sender != user.id )
+        my.sounds.getmessage.play();
+    // если мы - звук "исходящее сообщение"
+    if( json.sender == user.id )
+        my.sounds.sendmessage.play();    
+});
+
+$$("chat_box_tab_view").getMultiview().attachEvent("onViewChange", function(from_tab,to_tab){
+    //console.log("from_tab,to_tab: ", from_tab, to_tab);
+    $$(to_tab).showItem($$(to_tab).getLastId());
+    webix.UIManager.setFocus($$("send_button"));
+    webix.UIManager.setFocus($$("chat_message"));
+    chat_bages_recalc(to_tab);
+    return true;
+});
+
+
+function chat_bages_recalc(target_id){
+    // пересчитываем бейджики
+    my.data.chat_badgesfull -= my.data.chat_badges[target_id];
+    my.data.chat_badges[target_id] = 0;
+    // и отображаем их
+    chat_bages_show();
+}
+
+function chat_bages_show(){
+console.log("chat_bages_show: 0");
+
+    // на иконку в header-е страницы
+    $$("chat_icon").define({badge: my.data.chat_badges.full });
+    //$$("chat_icon").define({badge:});
+    $$("chat_icon").refresh();
+
+
+    Object.keys(users).forEach(function(target_id){
+        // определяем наше нахождение в чате
+        // и попутно текущий tab
+        var cur_tab = null;
+        var tabs = null;
+        var tabview = $$("chat_box_tab_view");
+        if( tabview ){
+            tabs = tabview.getTabbar();
+            if( tabs )
+                cur_tab = tabs.getValue();
+        }
+
+        // предрасчитываем id tab-а 
+        // для которого идет сообщение
+        var chat_id = "chat_"+target_id;
+
+        // на ники в списке пользователей 
+        // кроме ника, чей таб окрыт и является
+        // текущим, если конечно такой есть
+        var user_list = $$("chat_user_list");
+        if( user_list ){
+            var item = user_list.getItem(target_id);
+            if( item ){
+                item.badge = my.data.chat_badges[chat_id]||0;
+                user_list.refresh();
+            }
+        }
+
+    });
+}
+/*************************************************************************************/
